@@ -34,6 +34,18 @@ Smoke test:
 bash scripts/smoke_test.sh
 ```
 
+## Testing
+- Functional/integration: `scripts/smoke_test.sh`
+- Load test (k6):
+```bash
+brew install k6
+k6 run scripts/load_test.js
+```
+You can override endpoints:
+```bash
+SHORTENER_URL=http://localhost:5001 REDIRECTOR_URL=http://localhost:3000 k6 run scripts/load_test.js
+```
+
 ## Kubernetes (kind) deployment
 Prereqs:
 - Docker Desktop running
@@ -126,6 +138,8 @@ helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
 kubectl apply -f k8s/servicemonitor-shortener.yaml -f k8s/servicemonitor-redirector.yaml
 
 kubectl apply -f k8s/grafana-dashboard-url-shortener.yaml
+
+kubectl apply -f k8s/alerts-url-shortener.yaml
 
 helm upgrade --install loki grafana/loki-stack -n monitoring -f k8s/loki-stack-values.yaml
 ```

@@ -1,0 +1,51 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: url-shortener-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: url-shortener.rules
+      rules:
+        - alert: ShortenerHighErrorRate
+          expr: |
+            sum(rate(shortener_requests_total{result!="ok"}[5m]))
+              /
+            sum(rate(shortener_requests_total[5m])) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Shortener error rate > 5%"
+            description: "Shortener non-ok responses exceed 5% over 5m."
+        - alert: ShortenerHighLatencyP95
+          expr: |
+            histogram_quantile(0.95, sum(rate(shortener_request_duration_seconds_bucket[5m])) by (le)) > 0.5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Shortener p95 latency high"
+            description: "Shortener p95 latency above 0.5s for 5m."
+        - alert: RedirectorHighErrorRate
+          expr: |
+            sum(rate(redirector_requests_total{result="error"}[5m]))
+              /
+            sum(rate(redirector_requests_total[5m])) > 0.02
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Redirector error rate > 2%"
+            description: "Redirector error responses exceed 2% over 5m."
+        - alert: RedirectorHighLatencyP95
+          expr: |
+            histogram_quantile(0.95, sum(rate(redirector_request_duration_seconds_bucket[5m])) by (le)) > 0.3
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Redirector p95 latency high"
+            description: "Redirector p95 latency above 0.3s for 5m."
