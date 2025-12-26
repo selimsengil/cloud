@@ -112,11 +112,25 @@ Use `KUBECONFIG_B64` only if you want to deploy to a remote cluster.
 
 ## Monitoring and logging
 - Metrics endpoints: `GET /metrics` on both services.
-- Kubernetes: install Prometheus/Grafana (example with Helm):
+- Kubernetes: install Prometheus/Grafana + Loki (Helm):
 ```bash
+kubectl create namespace monitoring
+
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
-helm install monitoring prometheus-community/kube-prometheus-stack
+
+helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+  -n monitoring -f k8s/monitoring-values.yaml
+
+kubectl apply -f k8s/servicemonitor-shortener.yaml -f k8s/servicemonitor-redirector.yaml
+
+helm upgrade --install loki grafana/loki-stack -n monitoring -f k8s/loki-stack-values.yaml
+```
+- Grafana login: `admin` / `admin`
+- Access Grafana (port-forward):
+```bash
+kubectl -n monitoring port-forward svc/monitoring-grafana 3000:80
 ```
 - OpenShift: apply ServiceMonitors from `openshift/monitoring/` if user workload monitoring is enabled.
 
