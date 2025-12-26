@@ -94,8 +94,9 @@ Workflow: `.github/workflows/ci-cd.yml`
 What it does:
 - Builds and runs the stack with Docker Compose
 - Runs `scripts/smoke_test.sh`
+- Spins up a temporary kind cluster and deploys `k8s/` manifests
 - Builds and pushes images to GHCR on `main`
-- Deploys to Kubernetes if secrets are set
+- Deploys to an external Kubernetes cluster if secrets are set
 
 Required GitHub secrets for Kubernetes deploy:
 - `KUBECONFIG_B64` (base64-encoded kubeconfig)
@@ -105,6 +106,9 @@ To create `KUBECONFIG_B64`:
 ```bash
 cat ~/.kube/config | base64 | tr -d '\n'
 ```
+
+Note: The CI pipeline already deploys to an ephemeral kind cluster for validation.
+Use `KUBECONFIG_B64` only if you want to deploy to a remote cluster.
 
 ## Monitoring and logging
 - Metrics endpoints: `GET /metrics` on both services.
