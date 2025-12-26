@@ -125,13 +125,16 @@ helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
 
 kubectl apply -f k8s/servicemonitor-shortener.yaml -f k8s/servicemonitor-redirector.yaml
 
+kubectl apply -f k8s/grafana-dashboard-url-shortener.yaml
+
 helm upgrade --install loki grafana/loki-stack -n monitoring -f k8s/loki-stack-values.yaml
 ```
 - Grafana login: `admin` / `admin`
 - Access Grafana (port-forward):
 ```bash
-kubectl -n monitoring port-forward svc/monitoring-grafana 3000:80
+kubectl -n monitoring port-forward svc/monitoring-grafana 3001:80
 ```
+- Dashboard: `URL Shortener Overview`
 - OpenShift: apply ServiceMonitors from `openshift/monitoring/` if user workload monitoring is enabled.
 
 Logging:
