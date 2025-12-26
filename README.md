@@ -67,7 +67,10 @@ kind load docker-image cloud-redirector:latest --name url-shortener
 
 3) Apply manifests:
 ```bash
-kubectl apply -f k8s/
+kubectl apply -f k8s/configmap.yaml \
+  -f k8s/redis.yaml \
+  -f k8s/shortener.yaml \
+  -f k8s/redirector.yaml
 ```
 
 4) Port-forward services (keep these terminals open):

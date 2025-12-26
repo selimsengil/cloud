@@ -53,7 +53,11 @@ jobs:
           kind load docker-image cloud-redirector:latest --name ci
 
       - name: Apply manifests
-        run: kubectl apply -f k8s/
+        run: |
+          kubectl apply -f k8s/configmap.yaml \
+            -f k8s/redis.yaml \
+            -f k8s/shortener.yaml \
+            -f k8s/redirector.yaml
 
       - name: Wait for rollout
         run: |
@@ -130,7 +134,11 @@ jobs:
           K8S_NAMESPACE="${{ secrets.K8S_NAMESPACE }}"
           NAMESPACE="${K8S_NAMESPACE:-default}"
 
-          kubectl apply -f k8s/ -n "$NAMESPACE"
+          kubectl apply -f k8s/configmap.yaml \
+            -f k8s/redis.yaml \
+            -f k8s/shortener.yaml \
+            -f k8s/redirector.yaml \
+            -n "$NAMESPACE"
           kubectl set image deployment/shortener shortener=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/shortener:${{ github.sha }} -n "$NAMESPACE"
           kubectl set image deployment/redirector redirector=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/redirector:${{ github.sha }} -n "$NAMESPACE"
           kubectl rollout status deployment/shortener -n "$NAMESPACE"
