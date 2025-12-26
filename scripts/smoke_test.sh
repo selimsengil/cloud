@@ -5,8 +5,24 @@ SHORTENER_URL=${SHORTENER_URL:-http://localhost:5001}
 REDIRECTOR_URL=${REDIRECTOR_URL:-http://localhost:3000}
 LONG_URL=${LONG_URL:-https://example.com}
 
-curl -fsS "$SHORTENER_URL/health" >/dev/null
-curl -fsS "$REDIRECTOR_URL/health" >/dev/null
+wait_for() {
+  local url=$1
+  local name=$2
+  local attempts=30
+
+  for i in $(seq 1 "$attempts"); do
+    if curl -fsS "$url" >/dev/null; then
+      return 0
+    fi
+    sleep 1
+  done
+
+  echo "Timeout waiting for $name at $url"
+  return 1
+}
+
+wait_for "$SHORTENER_URL/health" "shortener"
+wait_for "$REDIRECTOR_URL/health" "redirector"
 
 response=$(curl -fsS -X POST "$SHORTENER_URL/shorten" \
   -H "Content-Type: application/json" \
