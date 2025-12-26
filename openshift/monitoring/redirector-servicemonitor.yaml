@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redirector
+spec:
+  selector:
+    matchLabels:
+      app: redirector
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

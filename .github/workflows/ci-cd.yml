@@ -1,0 +1,96 @@
+name: ci-cd
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAMESPACE: ${{ github.repository_owner }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and start services
+        run: docker compose up -d --build
+
+      - name: Smoke test
+        run: bash scripts/smoke_test.sh
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push shortener image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./shortener-service
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/shortener:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/shortener:latest
+
+      - name: Build and push redirector image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./redirect-service
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/redirector:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/redirector:latest
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' && secrets.KUBECONFIG_B64 != ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 --decode > ~/.kube/config
+
+      - name: Apply manifests
+        run: kubectl apply -f k8s/ -n ${{ secrets.K8S_NAMESPACE || 'default' }}
+
+      - name: Update images
+        run: |
+          kubectl set image deployment/shortener shortener=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/shortener:${{ github.sha }} -n ${{ secrets.K8S_NAMESPACE || 'default' }}
+          kubectl set image deployment/redirector redirector=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/redirector:${{ github.sha }} -n ${{ secrets.K8S_NAMESPACE || 'default' }}
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/shortener -n ${{ secrets.K8S_NAMESPACE || 'default' }}
+          kubectl rollout status deployment/redirector -n ${{ secrets.K8S_NAMESPACE || 'default' }}
