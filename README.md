@@ -12,24 +12,6 @@ A small polyglot microservices system:
 - Health checks: `GET /health`.
 - Metrics: `GET /metrics` (Prometheus format).
 
-## Architecture diagram
-```mermaid
-flowchart LR
-  client[Client] --> shortener[Shortener Service (Flask)]
-  client --> redirector[Redirector Service (Express)]
-
-  shortener --> redis[(Redis)]
-  redirector --> redis
-
-  shortener -->|/metrics| prometheus[Prometheus]
-  redirector -->|/metrics| prometheus
-  prometheus --> grafana[Grafana]
-
-  shortener -->|logs| loki[Loki]
-  redirector -->|logs| loki
-  loki --> grafana
-```
-
 ## Local run (Docker Compose)
 ```bash
 docker compose up --build
@@ -130,17 +112,6 @@ What it does:
 - Spins up a temporary kind cluster and deploys `k8s/` manifests
 - Builds and pushes images to GHCR on `main`
 - Deploys to an external Kubernetes cluster if secrets are set
-
-## CI/CD diagram
-```mermaid
-flowchart LR
-  dev[Developer] -->|git push| github[GitHub]
-  github --> actions[GitHub Actions]
-  actions --> test[Test: docker compose + smoke]
-  test --> k8s[K8s smoke: kind]
-  k8s --> build[Build + push images (GHCR)]
-  build -. optional .-> deploy[Deploy to external K8s]
-```
 
 Required GitHub secrets for Kubernetes deploy:
 - `KUBECONFIG_B64` (base64-encoded kubeconfig)
