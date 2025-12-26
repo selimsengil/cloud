@@ -111,6 +111,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
     if: github.ref == 'refs/heads/main' && secrets.KUBECONFIG_B64 != ''
+    env:
+      K8S_NAMESPACE: ${{ secrets.K8S_NAMESPACE }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -124,14 +126,14 @@ jobs:
           echo "${{ secrets.KUBECONFIG_B64 }}" | base64 --decode > ~/.kube/config
 
       - name: Apply manifests
-        run: kubectl apply -f k8s/ -n ${{ secrets.K8S_NAMESPACE || 'default' }}
+        run: kubectl apply -f k8s/ -n "${K8S_NAMESPACE:-default}"
 
       - name: Update images
         run: |
-          kubectl set image deployment/shortener shortener=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/shortener:${{ github.sha }} -n ${{ secrets.K8S_NAMESPACE || 'default' }}
-          kubectl set image deployment/redirector redirector=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/redirector:${{ github.sha }} -n ${{ secrets.K8S_NAMESPACE || 'default' }}
+          kubectl set image deployment/shortener shortener=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/shortener:${{ github.sha }} -n "${K8S_NAMESPACE:-default}"
+          kubectl set image deployment/redirector redirector=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/redirector:${{ github.sha }} -n "${K8S_NAMESPACE:-default}"
 
       - name: Wait for rollout
         run: |
-          kubectl rollout status deployment/shortener -n ${{ secrets.K8S_NAMESPACE || 'default' }}
-          kubectl rollout status deployment/redirector -n ${{ secrets.K8S_NAMESPACE || 'default' }}
+          kubectl rollout status deployment/shortener -n "${K8S_NAMESPACE:-default}"
+          kubectl rollout status deployment/redirector -n "${K8S_NAMESPACE:-default}"
