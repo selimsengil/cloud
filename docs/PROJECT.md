@@ -10,3 +10,6 @@ This repo is split into multiple parts. Each part has its own detailed doc:
 - `docs/monitoring.md` — Prometheus/Grafana/Loki assets
 - `docs/ci-cd.md` — GitHub Actions pipeline
 - `docs/scripts.md` — Smoke + load tests
+
+Readable, simplified versions live under `docs/explain/`:
+- `docs/explain/PROJECT.md` — index
