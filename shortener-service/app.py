@@ -2,6 +2,7 @@ import os
 import random
 import string
 import time
+from urllib.parse import urlparse
 
 from flask import Flask, jsonify, request, Response
 import redis
@@ -32,16 +33,34 @@ def generate_code(length=CODE_LENGTH):
     return "".join(random.choice(ALPHABET) for _ in range(length))
 
 
+def normalize_url(value):
+    if not isinstance(value, str):
+        return None
+
+    trimmed = value.strip()
+    if not trimmed:
+        return None
+
+    parsed = urlparse(trimmed)
+    if parsed.scheme not in ("http", "https"):
+        return None
+
+    if not parsed.netloc:
+        return None
+
+    return trimmed
+
+
 @app.route("/shorten", methods=["POST"])
 def shorten_url():
     start_time = time.time()
     data = request.get_json(silent=True) or {}
-    long_url = data.get("url")
+    long_url = normalize_url(data.get("url"))
 
     if not long_url:
         SHORTEN_REQUESTS.labels(result="bad_request").inc()
         SHORTEN_LATENCY.labels(result="bad_request").observe(time.time() - start_time)
-        return jsonify({"error": "url is required"}), 400
+        return jsonify({"error": "valid http/https url is required"}), 400
 
     # Try a few times to avoid rare collisions.
     code = None

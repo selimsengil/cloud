@@ -12,6 +12,9 @@ A small polyglot microservices system:
 - Health checks: `GET /health`.
 - Metrics: `GET /metrics` (Prometheus format).
 
+## Documentation
+See `docs/PROJECT.md` for a full index, and the individual files under `docs/` for each component.
+
 ## Local run (Docker Compose)
 ```bash
 docker compose up --build
