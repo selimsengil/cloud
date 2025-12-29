@@ -94,15 +94,6 @@ Notes:
 - `k8s/configmap.yaml` sets `REDIRECT_BASE_URL` for local port-forwarding.
   Update it if you use Ingress or a different host.
 
-## OpenShift (optional)
-If you prefer OpenShift, manifests are under `openshift/`:
-```bash
-oc apply -f openshift/
-```
-Update:
-- `openshift/shortener.yaml` and `openshift/redirector.yaml` with your image registry.
-- `openshift/configmap.yaml` to set `REDIRECT_BASE_URL` to the redirector Route host.
-
 ## CI/CD (GitHub Actions)
 Workflow: `.github/workflows/ci-cd.yml`
 
@@ -152,12 +143,10 @@ helm upgrade --install loki grafana/loki-stack -n monitoring -f k8s/loki-stack-v
 kubectl -n monitoring port-forward svc/monitoring-grafana 3001:80
 ```
 - Dashboard: `URL Shortener Overview`
-- OpenShift: apply ServiceMonitors from `openshift/monitoring/` if user workload monitoring is enabled.
 
 Logging:
 - Application logs go to stdout/stderr.
 - Kubernetes: `kubectl logs deployment/shortener` and `kubectl logs deployment/redirector`.
-- OpenShift: `oc logs deployment/shortener` and `oc logs deployment/redirector`.
 
 ## Environment variables
 - `REDIS_HOST` (default `localhost`)
