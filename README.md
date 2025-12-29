@@ -116,6 +116,35 @@ cat ~/.kube/config | base64 | tr -d '\n'
 Note: The CI pipeline already deploys to an ephemeral kind cluster for validation.
 Use `KUBECONFIG_B64` only if you want to deploy to a remote cluster.
 
+## Kubernetes (Helm)
+The Helm chart lives in `charts/url-shortener`.
+
+Install/upgrade:
+```bash
+helm upgrade --install url-shortener charts/url-shortener \
+  -n url-shortener --create-namespace \
+  --set shortener.image.repository=ghcr.io/<user>/shortener \
+  --set redirector.image.repository=ghcr.io/<user>/redirector
+```
+
+Using an external Redis:
+```bash
+helm upgrade --install url-shortener charts/url-shortener \
+  -n url-shortener --create-namespace \
+  --set redis.enabled=false \
+  --set redis.host=<redis-host> \
+  --set redis.port=6379
+```
+
+Enable ServiceMonitor + PrometheusRule (Prometheus Operator required):
+```bash
+helm upgrade --install url-shortener charts/url-shortener \
+  -n url-shortener --create-namespace \
+  --set monitoring.serviceMonitor.enabled=true \
+  --set monitoring.prometheusRule.enabled=true \
+  --set monitoring.serviceMonitor.releaseLabel=monitoring
+```
+
 ## Monitoring and logging
 - Metrics endpoints: `GET /metrics` on both services.
 - Kubernetes: install Prometheus/Grafana + Loki (Helm):

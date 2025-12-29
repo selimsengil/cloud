@@ -1,0 +1,21 @@
+Thanks for installing {{ include "url-shortener.name" . }}.
+
+Install/upgrade:
+  helm upgrade --install <release> {{ .Chart.Name }} -n <namespace> --create-namespace
+
+Port-forward (local testing):
+  kubectl -n <namespace> port-forward svc/{{ include "url-shortener.shortenerName" . }} 5001:{{ .Values.shortener.service.port }}
+  kubectl -n <namespace> port-forward svc/{{ include "url-shortener.redirectorName" . }} 3000:{{ .Values.redirector.service.port }}
+
+Health checks:
+  curl -i http://localhost:5001/health
+  curl -i http://localhost:3000/health
+
+Metrics:
+  curl http://localhost:5001/metrics
+  curl http://localhost:3000/metrics
+
+Shorten example:
+  curl -s -X POST http://localhost:5001/shorten \
+    -H "Content-Type: application/json" \
+    -d '{"url":"https://example.com"}'

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "url-shortener.shortenerName" . }}
+  labels:
+    {{- include "url-shortener.labels" . | nindent 4 }}
+    app: shortener
+spec:
+  type: {{ .Values.shortener.service.type }}
+  selector:
+    {{- include "url-shortener.selectorLabels" . | nindent 4 }}
+    app: shortener
+  ports:
+    - name: http
+      port: {{ .Values.shortener.service.port }}
+      targetPort: {{ .Values.shortener.containerPort }}

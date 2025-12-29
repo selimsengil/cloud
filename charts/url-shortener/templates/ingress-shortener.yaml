@@ -1,0 +1,27 @@
+{{- if .Values.ingress.shortener.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "url-shortener.shortenerName" . }}
+  labels:
+    {{- include "url-shortener.labels" . | nindent 4 }}
+  {{- with .Values.ingress.shortener.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.shortener.className }}
+  ingressClassName: {{ .Values.ingress.shortener.className }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.shortener.host | quote }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.shortener.path }}
+            pathType: {{ .Values.ingress.shortener.pathType }}
+            backend:
+              service:
+                name: {{ include "url-shortener.shortenerName" . }}
+                port:
+                  number: {{ .Values.shortener.service.port }}
+{{- end }}

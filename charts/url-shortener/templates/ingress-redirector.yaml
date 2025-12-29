@@ -1,0 +1,27 @@
+{{- if .Values.ingress.redirector.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "url-shortener.redirectorName" . }}
+  labels:
+    {{- include "url-shortener.labels" . | nindent 4 }}
+  {{- with .Values.ingress.redirector.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.redirector.className }}
+  ingressClassName: {{ .Values.ingress.redirector.className }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.redirector.host | quote }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.redirector.path }}
+            pathType: {{ .Values.ingress.redirector.pathType }}
+            backend:
+              service:
+                name: {{ include "url-shortener.redirectorName" . }}
+                port:
+                  number: {{ .Values.redirector.service.port }}
+{{- end }}

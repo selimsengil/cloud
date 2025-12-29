@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "url-shortener.redirectorName" . }}
+  labels:
+    {{- include "url-shortener.labels" . | nindent 4 }}
+    app: redirector
+spec:
+  replicas: {{ .Values.redirector.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "url-shortener.selectorLabels" . | nindent 6 }}
+      app: redirector
+  template:
+    metadata:
+      labels:
+        {{- include "url-shortener.selectorLabels" . | nindent 8 }}
+        app: redirector
+    spec:
+      containers:
+        - name: redirector
+          image: "{{ .Values.redirector.image.repository }}:{{ .Values.redirector.image.tag }}"
+          imagePullPolicy: {{ .Values.redirector.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.redirector.containerPort }}
+          env:
+            - name: PORT
+              value: {{ .Values.redirector.containerPort | quote }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "url-shortener.configMapName" . }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.redirector.containerPort }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.redirector.containerPort }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.redirector.resources | nindent 12 }}
+      {{- with .Values.redirector.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redirector.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redirector.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

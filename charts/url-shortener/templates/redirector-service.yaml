@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "url-shortener.redirectorName" . }}
+  labels:
+    {{- include "url-shortener.labels" . | nindent 4 }}
+    app: redirector
+spec:
+  type: {{ .Values.redirector.service.type }}
+  selector:
+    {{- include "url-shortener.selectorLabels" . | nindent 4 }}
+    app: redirector
+  ports:
+    - name: http
+      port: {{ .Values.redirector.service.port }}
+      targetPort: {{ .Values.redirector.containerPort }}

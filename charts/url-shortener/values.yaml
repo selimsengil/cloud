@@ -1,0 +1,89 @@
+nameOverride: ""
+fullnameOverride: ""
+
+redirectBaseUrl: "http://localhost:3000"
+
+shortener:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/REPLACE_ME/shortener
+    tag: latest
+    pullPolicy: IfNotPresent
+  containerPort: 5000
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+redirector:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/REPLACE_ME/redirector
+    tag: latest
+    pullPolicy: IfNotPresent
+  containerPort: 3000
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+redis:
+  enabled: true
+  host: "redis"
+  port: 6379
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+ingress:
+  shortener:
+    enabled: false
+    className: ""
+    annotations: {}
+    host: "shortener.local"
+    path: "/"
+    pathType: Prefix
+  redirector:
+    enabled: false
+    className: ""
+    annotations: {}
+    host: "redirector.local"
+    path: "/"
+    pathType: Prefix
+
+monitoring:
+  serviceMonitor:
+    enabled: false
+    interval: 15s
+    releaseLabel: monitoring
+  prometheusRule:
+    enabled: false
