@@ -13,6 +13,7 @@ app = Flask(__name__)
 REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
 REDIRECT_BASE_URL = os.environ.get("REDIRECT_BASE_URL")
+SERVICE_VERSION = os.environ.get("SERVICE_VERSION", "1.0.1")
 
 ALPHABET = string.ascii_lowercase + string.digits
 CODE_LENGTH = 5
@@ -75,7 +76,7 @@ def shorten_url():
         SHORTEN_LATENCY.labels(result="error").observe(time.time() - start_time)
         return jsonify({"error": "could not allocate code"}), 500
 
-    response = {"code": code}
+    response = {"code": code, "version": SERVICE_VERSION}
     if REDIRECT_BASE_URL:
         response["short_url"] = REDIRECT_BASE_URL.rstrip("/") + "/" + code
 
