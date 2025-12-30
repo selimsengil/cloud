@@ -13,7 +13,7 @@ app = Flask(__name__)
 REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
 REDIRECT_BASE_URL = os.environ.get("REDIRECT_BASE_URL")
-SERVICE_VERSION = os.environ.get("SERVICE_VERSION", "1.0.1")
+SERVICE_VERSION = os.environ.get("SERVICE_VERSION", "1.0.3")
 
 ALPHABET = string.ascii_lowercase + string.digits
 CODE_LENGTH = 5
